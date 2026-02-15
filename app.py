@@ -58,12 +58,31 @@ if uploaded_file is not None:
     if model_name in ["Logistic Regression", "KNN"]:
         data = scaler.transform(data)
 
-    predictions = model.predict(data)
+predictions = model.predict(data)
 
-    st.subheader("Predictions")
-    st.write(predictions)
+st.subheader("Predictions")
+st.write(predictions)
 
-    st.subheader("Prediction Distribution")
-    st.bar_chart(pd.Series(predictions).value_counts())
+st.subheader("Prediction Distribution")
+st.bar_chart(pd.Series(predictions).value_counts())
+
+# If actual labels exist -> show confusion matrix
+if 'num' in data.columns:
+    from sklearn.metrics import confusion_matrix
+    import seaborn as sns
+    import matplotlib.pyplot as plt
+
+    y_true = data['num']
+    cm = confusion_matrix(y_true, predictions)
+
+    st.subheader("Confusion Matrix")
+    fig, ax = plt.subplots()
+    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", ax=ax)
+    ax.set_xlabel("Predicted")
+    ax.set_ylabel("Actual")
+    st.pyplot(fig)
+else:
+    st.info("Upload dataset including 'num' column to view confusion matrix")
+    
 
 
