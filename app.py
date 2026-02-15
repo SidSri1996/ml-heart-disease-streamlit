@@ -38,6 +38,13 @@ st.download_button(
     mime="text/csv"
 )
 
+st.subheader("📥 Download Full Dataset for Testing")
+
+st.markdown(
+    "[Click here to download full dataset](https://raw.githubusercontent.com/SidSri1996/ml-heart-disease-streamlit/main/data/heart_disease_uci.csv)"
+)
+
+
 # ---------------- MODEL SELECT ----------------
 model_name = st.selectbox("Select Model", list(models.keys()))
 model = models[model_name]
@@ -93,3 +100,4 @@ if uploaded_file is not None:
         st.pyplot(fig)
     else:
         st.info("Upload dataset including 'num' column to view confusion matrix")
+
