@@ -1,33 +1,30 @@
 Heart Disease Prediction using Machine Learning
 1. Problem Statement
-
-The goal of this project is to predict whether a patient has heart disease based on medical attributes using multiple machine learning classification algorithms.
-The project demonstrates an end-to-end ML workflow including data preprocessing, model training, evaluation, and deployment using Streamlit.
+   
+The objective of this project is to develop a machine learning system capable of predicting the presence of heart disease in a patient using clinical and physiological attributes.
+Multiple classification algorithms are implemented and compared to evaluate their effectiveness.
+The project also demonstrates a complete machine learning pipeline, including preprocessing, model evaluation, and deployment using a Streamlit web application.
 
 2. Dataset Description
 
-Dataset: UCI Heart Disease Dataset
+     Dataset: UCI Heart Disease Dataset
+     Instances: 920 records
+     Features: 15 medical attributes (age, sex, chest pain type, cholesterol, etc.)
+     Target Variable: num
 
-Instances: 920 records
-
-Features: 15 medical attributes (age, sex, chest pain type, cholesterol, etc.)
-
-Target Variable: num
-
+Target interpretation:
   0 → No heart disease
-
   1 → Heart disease
 
 Preprocessing performed:
+    Converted multi-class target to binary classification
+    Applied one-hot encoding to categorical attributes
+    Handled missing values using median imputation
+    Performed feature scaling for distance-based algorithms
 
-Converted multi-class target to binary classification
 
-One-hot encoding of categorical variables
-
-Missing value imputation using median
-
-Feature scaling for distance-based models
-
+3. Model Performance Comparison
+   
 | Model               | Accuracy | AUC   | Precision | Recall | F1    | MCC   |
 | ------------------- | -------- | ----- | --------- | ------ | ----- | ----- |
 | Logistic Regression | 0.864    | 0.934 | 0.853     | 0.912  | 0.882 | 0.725 |
@@ -50,15 +47,13 @@ Feature scaling for distance-based models
 
 5. Streamlit App Features
 
-  Upload custom test dataset (CSV)
+     Upload custom test dataset (CSV)
+     Select a classification model from dropdown
+     View comparison of model performance metrics
+     Generate predictions interactively
+     Display confusion matrix when actual labels are provided
 
-  Select model from dropdown
-
-  View model performance comparison
-
-  Generate predictions interactively
-
-  6. Live Application
+6. Live Application
 
 Streamlit App:
 https://ml-heart-disease-app-cwz8usnvhxvcbcwdw9l5ml.streamlit.app/
