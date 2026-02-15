@@ -122,8 +122,25 @@ if uploaded_file is not None:
     pred_df["Prediction"] = pred_df["Prediction"].map({0:"No Disease",1:"Heart Disease"})
     st.dataframe(pred_df, use_container_width=True)
 
-    st.subheader("Prediction Distribution")
-    st.bar_chart(pred_df["Prediction"].value_counts())
+    st.subheader("📊 Prediction Distribution")
+
+    counts = pred_df["Prediction"].value_counts()
+    
+    fig, ax = plt.subplots(figsize=(6,4))
+    bars = ax.bar(counts.index, counts.values)
+    
+    # Add labels above bars
+    for bar in bars:
+        height = bar.get_height()
+        ax.text(bar.get_x() + bar.get_width()/2, height + 2,
+                f'{int(height)}', ha='center', va='bottom', fontsize=11)
+    
+    ax.set_ylabel("Number of Patients")
+    ax.set_xlabel("Prediction Result")
+    ax.set_title("Heart Disease Prediction Distribution")
+    
+    st.pyplot(fig)
+
 
     # ---------- CONFUSION MATRIX ----------
     if y_true is not None:
@@ -141,3 +158,4 @@ if uploaded_file is not None:
 # ---------- FOOTER ----------
 st.divider()
 st.caption("Developed for BITS Pilani WILP - Machine Learning Assignment 2")
+
