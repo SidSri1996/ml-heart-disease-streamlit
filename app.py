@@ -40,9 +40,22 @@ st.download_button(
 
 st.subheader("📥 Download Full Dataset for Testing")
 
-st.markdown(
-    "[Click here to download full dataset](https://raw.githubusercontent.com/SidSri1996/ml-heart-disease-streamlit/main/data/heart_disease_uci.csv)"
-)
+import requests
+
+DATA_URL = "https://raw.githubusercontent.com/SidSri1996/ml-heart-disease-streamlit/main/data/heart_disease_uci.csv"
+
+response = requests.get(DATA_URL)
+
+if response.status_code == 200:
+    st.download_button(
+        label="Download Full Heart Disease Dataset",
+        data=response.content,
+        file_name="heart_disease_uci.csv",
+        mime="text/csv"
+    )
+else:
+    st.warning("Unable to load dataset from GitHub")
+
 
 
 # ---------------- MODEL SELECT ----------------
@@ -100,4 +113,5 @@ if uploaded_file is not None:
         st.pyplot(fig)
     else:
         st.info("Upload dataset including 'num' column to view confusion matrix")
+
 
