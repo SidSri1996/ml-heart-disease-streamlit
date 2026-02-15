@@ -1,5 +1,6 @@
 import pandas as pd
 import pickle
+import joblib
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -72,10 +73,17 @@ for name, model in models.items():
 
     results[name] = evaluate(y_test, pred, prob)
 
+# Save columns used in training
+joblib.dump(list(X.columns), "columns.pkl")
+
+# Save scaler
+joblib.dump(scaler, "scaler.pkl")
+
 # Save models
-pickle.dump(models, open("models.pkl","wb"))
+joblib.dump(models, "models.pkl")
 
 # Save metrics
 pd.DataFrame(results).T.to_csv("metrics.csv")
+
 
 print("Training complete! Models and metrics saved.")
