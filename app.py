@@ -14,6 +14,26 @@ metrics = pd.read_csv("model/metrics.csv", index_col=0)
 st.subheader("📊 Model Performance Comparison")
 st.dataframe(metrics)
 
+st.subheader("📄 Expected CSV Format")
+
+required_columns = [
+    "age","sex","dataset","cp","trestbps","chol","fbs","restecg",
+    "thalch","exang","oldpeak","slope","ca","thal"
+]
+
+st.write("Upload a CSV containing the following columns (no target column):")
+st.code(", ".join(required_columns))
+
+# Sample download
+sample = pd.DataFrame(columns=required_columns)
+st.download_button(
+    label="Download Sample CSV",
+    data=sample.to_csv(index=False),
+    file_name="sample_input.csv",
+    mime="text/csv"
+)
+
+
 # Model selection
 model_name = st.selectbox("Select Model", list(models.keys()))
 model = models[model_name]
@@ -45,4 +65,5 @@ if uploaded_file is not None:
 
     st.subheader("Prediction Distribution")
     st.bar_chart(pd.Series(predictions).value_counts())
+
 
