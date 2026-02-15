@@ -66,34 +66,31 @@ response = requests.get(DATA_URL)
 if response.status_code == 200:
     st.download_button("Download Full Heart Disease Dataset",
                        response.content, "heart_disease_uci.csv", "text/csv")
-else:
-    st.warning("Dataset download unavailable")
 
 # ---------- MODEL SELECT ----------
 st.subheader("⚙️ Select Model")
 model_name = st.selectbox("Choose classification algorithm", list(models.keys()))
 model = models[model_name]
 
-st.info("Select a model → Upload dataset → Click 'Run Prediction'")
+st.info("Select a model → Upload dataset → Click Run Prediction")
 
 # ---------- FILE UPLOAD ----------
 uploaded_file = st.file_uploader("Upload CSV file", type=["csv"])
-
 run_prediction = st.button("▶ Run Prediction")
 
-# ---------- PREDICTION PIPELINE ----------
+# ---------- PIPELINE ----------
 if uploaded_file is not None and run_prediction:
 
     original_data = pd.read_csv(uploaded_file)
     st.dataframe(original_data.head(), use_container_width=True)
 
-    # Handle target column
+    # Handle target
     y_true = None
     if 'num' in original_data.columns:
         y_true = (original_data['num'] > 0).astype(int)
         original_data = original_data.drop(columns=['num'])
 
-    # PREPROCESS
+    # Preprocess
     data = pd.get_dummies(original_data, drop_first=True)
 
     for col in columns:
@@ -106,12 +103,54 @@ if uploaded_file is not None and run_prediction:
     if model_name in ["Logistic Regression", "KNN"]:
         data = scaler.transform(data)
 
-    # PREDICT
+    # Predict
     predictions = model.predict(data)
+
     pred_df = pd.DataFrame({"Prediction": predictions})
     pred_df["Prediction"] = pred_df["Prediction"].map({0:"No Disease",1:"Heart Disease"})
 
-    # Download predictions CSV
+    # Download CSV
     output_df = original_data.copy()
-    output_df["Prediction"] = pred_df["
-::contentReference[oaicite:0]{index=0}
+    output_df["Prediction"] = pred_df["Prediction"]
+
+    st.download_button(
+        "📥 Download Predictions CSV",
+        output_df.to_csv(index=False),
+        "predicted_results.csv",
+        "text/csv"
+    )
+
+    # Dashboard
+    st.divider()
+    st.subheader("📊 Prediction Dashboard")
+    st.success(f"Predictions generated using: **{model_name}**")
+
+    colA, colB = st.columns(2)
+
+    # Left: Predictions
+    with colA:
+        st.markdown("### 📋 Prediction Results")
+        st.dataframe(pred_df, height=350, use_container_width=True)
+
+        counts = pred_df["Prediction"].value_counts()
+        fig1, ax1 = plt.subplots(figsize=(4,3))
+        ax1.bar(counts.index, counts.values)
+        ax1.set_title("Prediction Distribution")
+        st.pyplot(fig1)
+
+    # Right: Confusion Matrix
+    with colB:
+        st.markdown("### 🧠 Model Evaluation")
+        if y_true is not None:
+            cm = confusion_matrix(y_true, predictions)
+            fig2, ax2 = plt.subplots(figsize=(4,3))
+            sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", cbar=False, ax=ax2)
+            ax2.set_xlabel("Predicted")
+            ax2.set_ylabel("Actual")
+            st.pyplot(fig2)
+        else:
+            st.info("Upload dataset including 'num' column to view confusion matrix")
+
+# ---------- FOOTER ----------
+st.divider()
+st.caption("Developed for BITS Pilani WILP - Machine Learning Assignment 2")
