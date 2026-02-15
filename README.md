@@ -38,6 +38,7 @@ Feature scaling for distance-based models
 | XGBoost             | 0.880    | 0.932 | 0.877     | 0.912  | 0.894 | 0.758 |
 
 4. Observations
+   
 | Model               | Observation                                                       |
 | ------------------- | ----------------------------------------------------------------- |
 | Logistic Regression | Performs well due to near linear separability of medical features |
