@@ -3,23 +3,45 @@ import pandas as pd
 import joblib
 import matplotlib.pyplot as plt
 import seaborn as sns
+import requests
 from sklearn.metrics import confusion_matrix
 
-st.set_page_config(page_title="Heart Disease ML App", layout="centered")
+# ---------- PAGE CONFIG ----------
+st.set_page_config(page_title="Heart Disease ML App", layout="wide")
 
-st.title("❤️ Heart Disease Prediction Dashboard")
+# ---------- UI STYLE ----------
+st.markdown("""
+<style>
+.main {background-color: #f5f7fb;}
+h1 {color: #0e4c92; text-align: center;}
+h2, h3 {color: #1b6ca8;}
+.stButton>button {background-color:#1b6ca8;color:white;border-radius:8px;}
+.stDownloadButton>button {background-color:#0e4c92;color:white;border-radius:8px;}
+[data-testid="stDataFrame"] {border-radius:10px;border:1px solid #e1e5ee;}
+</style>
+""", unsafe_allow_html=True)
 
-# Load trained objects
+# ---------- HEADER ----------
+st.markdown("<h1>❤️ Heart Disease Prediction Dashboard</h1>", unsafe_allow_html=True)
+st.caption("Machine Learning Classification & Model Comparison Web Application")
+st.divider()
+
+# ---------- LOAD MODELS ----------
 models = joblib.load("model/models.pkl")
 columns = joblib.load("model/columns.pkl")
 scaler = joblib.load("model/scaler.pkl")
 metrics = pd.read_csv("model/metrics.csv", index_col=0)
 
-# ---------------- METRICS ----------------
+# ---------- METRICS ----------
 st.subheader("📊 Model Performance Comparison")
-st.dataframe(metrics)
 
-# ---------------- CSV FORMAT ----------------
+col1, col2 = st.columns([3,1])
+with col1:
+    st.dataframe(metrics, use_container_width=True)
+with col2:
+    st.info("Compare performance of six classification algorithms trained on the dataset.")
+
+# ---------- CSV FORMAT ----------
 st.subheader("📄 Expected CSV Format")
 
 required_columns = [
@@ -27,10 +49,15 @@ required_columns = [
     "thalch","exang","oldpeak","slope","ca","thal"
 ]
 
-st.write("Upload a CSV containing the following columns (target column 'num' optional):")
 st.code(", ".join(required_columns))
 
-sample = pd.DataFrame(columns=required_columns)
+# ---------- SAMPLE CSV ----------
+sample = pd.DataFrame([
+    [63,1,"Cleveland",3,145,233,1,0,150,0,2.3,0,0,"fixed defect"],
+    [37,1,"Hungary",2,130,250,0,1,187,0,3.5,0,0,"normal"],
+    [56,0,"Cleveland",1,120,236,0,1,178,0,0.8,2,0,"normal"]
+], columns=required_columns)
+
 st.download_button(
     label="Download Sample CSV",
     data=sample.to_csv(index=False),
@@ -38,12 +65,10 @@ st.download_button(
     mime="text/csv"
 )
 
+# ---------- FULL DATASET DOWNLOAD ----------
 st.subheader("📥 Download Full Dataset for Testing")
 
-import requests
-
 DATA_URL = "https://raw.githubusercontent.com/SidSri1996/ml-heart-disease-streamlit/main/data/heart_disease_uci.csv"
-
 response = requests.get(DATA_URL)
 
 if response.status_code == 200:
@@ -54,26 +79,23 @@ if response.status_code == 200:
         mime="text/csv"
     )
 else:
-    st.warning("Unable to load dataset from GitHub")
+    st.warning("Dataset download unavailable")
 
-
-
-# ---------------- MODEL SELECT ----------------
-model_name = st.selectbox("Select Model", list(models.keys()))
+# ---------- MODEL SELECT ----------
+st.subheader("⚙️ Select Model")
+model_name = st.selectbox("Choose classification algorithm", list(models.keys()))
 model = models[model_name]
 
-# ---------------- FILE UPLOAD ----------------
+# ---------- FILE UPLOAD ----------
 st.subheader("📂 Upload Dataset")
 uploaded_file = st.file_uploader("Upload CSV file", type=["csv"])
 
 if uploaded_file is not None:
 
     original_data = pd.read_csv(uploaded_file)
+    st.dataframe(original_data.head(), use_container_width=True)
 
-    st.write("Preview of uploaded data:")
-    st.dataframe(original_data.head())
-
-    # Extract target if exists (convert to binary!)
+    # Handle target
     y_true = None
     if 'num' in original_data.columns:
         y_true = (original_data['num'] > 0).astype(int)
@@ -92,20 +114,22 @@ if uploaded_file is not None:
     if model_name in ["Logistic Regression", "KNN"]:
         data = scaler.transform(data)
 
-    # ---------- PREDICTIONS ----------
+    # ---------- PREDICT ----------
     predictions = model.predict(data)
 
-    st.subheader("Predictions")
-    st.write(predictions)
+    st.subheader("🔍 Prediction Results")
+    pred_df = pd.DataFrame({"Prediction": predictions})
+    pred_df["Prediction"] = pred_df["Prediction"].map({0:"No Disease",1:"Heart Disease"})
+    st.dataframe(pred_df, use_container_width=True)
 
     st.subheader("Prediction Distribution")
-    st.bar_chart(pd.Series(predictions).value_counts())
+    st.bar_chart(pred_df["Prediction"].value_counts())
 
     # ---------- CONFUSION MATRIX ----------
     if y_true is not None:
-        cm = confusion_matrix(y_true, predictions)
+        st.subheader("🧠 Confusion Matrix")
 
-        st.subheader("Confusion Matrix")
+        cm = confusion_matrix(y_true, predictions)
         fig, ax = plt.subplots()
         sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", ax=ax)
         ax.set_xlabel("Predicted")
@@ -114,4 +138,6 @@ if uploaded_file is not None:
     else:
         st.info("Upload dataset including 'num' column to view confusion matrix")
 
-
+# ---------- FOOTER ----------
+st.divider()
+st.caption("Developed for BITS Pilani WILP - Machine Learning Assignment 2")
