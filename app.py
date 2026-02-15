@@ -55,12 +55,8 @@ sample = pd.DataFrame([
     [56,0,"Cleveland",1,120,236,0,1,178,0,0.8,2,0,"normal"]
 ], columns=required_columns)
 
-st.download_button(
-    label="Download Sample CSV",
-    data=sample.to_csv(index=False),
-    file_name="sample_input.csv",
-    mime="text/csv"
-)
+st.download_button("Download Sample CSV", sample.to_csv(index=False),
+                   "sample_input.csv", "text/csv")
 
 # ---------- FULL DATASET DOWNLOAD ----------
 st.subheader("📥 Download Full Dataset for Testing")
@@ -68,12 +64,8 @@ DATA_URL = "https://raw.githubusercontent.com/SidSri1996/ml-heart-disease-stream
 response = requests.get(DATA_URL)
 
 if response.status_code == 200:
-    st.download_button(
-        label="Download Full Heart Disease Dataset",
-        data=response.content,
-        file_name="heart_disease_uci.csv",
-        mime="text/csv"
-    )
+    st.download_button("Download Full Heart Disease Dataset",
+                       response.content, "heart_disease_uci.csv", "text/csv")
 else:
     st.warning("Dataset download unavailable")
 
@@ -82,22 +74,26 @@ st.subheader("⚙️ Select Model")
 model_name = st.selectbox("Choose classification algorithm", list(models.keys()))
 model = models[model_name]
 
+st.info("Select a model → Upload dataset → Click 'Run Prediction'")
+
 # ---------- FILE UPLOAD ----------
-st.subheader("📂 Upload Dataset")
 uploaded_file = st.file_uploader("Upload CSV file", type=["csv"])
 
-if uploaded_file is not None:
+run_prediction = st.button("▶ Run Prediction")
+
+# ---------- PREDICTION PIPELINE ----------
+if uploaded_file is not None and run_prediction:
 
     original_data = pd.read_csv(uploaded_file)
     st.dataframe(original_data.head(), use_container_width=True)
 
-    # Handle target
+    # Handle target column
     y_true = None
     if 'num' in original_data.columns:
         y_true = (original_data['num'] > 0).astype(int)
         original_data = original_data.drop(columns=['num'])
 
-    # ---------- PREPROCESS ----------
+    # PREPROCESS
     data = pd.get_dummies(original_data, drop_first=True)
 
     for col in columns:
@@ -110,49 +106,12 @@ if uploaded_file is not None:
     if model_name in ["Logistic Regression", "KNN"]:
         data = scaler.transform(data)
 
-    # ---------- PREDICT ----------
+    # PREDICT
     predictions = model.predict(data)
     pred_df = pd.DataFrame({"Prediction": predictions})
     pred_df["Prediction"] = pred_df["Prediction"].map({0:"No Disease",1:"Heart Disease"})
 
-    # ================= DASHBOARD =================
-    st.divider()
-    st.subheader("📊 Prediction Dashboard")
-
-    colA, colB = st.columns([1,1])
-
-    # LEFT SIDE
-    with colA:
-        st.markdown("## 📋 Prediction Results")
-        st.dataframe(pred_df, height=380, use_container_width=True)
-
-        counts = pred_df["Prediction"].value_counts()
-
-        fig1, ax1 = plt.subplots(figsize=(4,3))
-        bars = ax1.bar(counts.index, counts.values)
-
-        for bar in bars:
-            height = bar.get_height()
-            ax1.text(bar.get_x()+bar.get_width()/2, height+1,
-                     f'{int(height)}', ha='center', fontsize=10)
-
-        ax1.set_ylabel("Patients")
-        ax1.set_title("Prediction Distribution")
-        st.pyplot(fig1)
-
-    # RIGHT SIDE
-    with colB:
-        st.markdown("## 🧠 Model Evaluation")
-        if y_true is not None:
-            cm = confusion_matrix(y_true, predictions)
-            fig2, ax2 = plt.subplots(figsize=(4,3))
-            sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", cbar=False, ax=ax2)
-            ax2.set_xlabel("Predicted")
-            ax2.set_ylabel("Actual")
-            st.pyplot(fig2)
-        else:
-            st.info("Upload dataset including 'num' column to view confusion matrix")
-
-# ---------- FOOTER ----------
-st.divider()
-st.caption("Developed for BITS Pilani WILP - Machine Learning Assignment 2")
+    # Download predictions CSV
+    output_df = original_data.copy()
+    output_df["Prediction"] = pred_df["
+::contentReference[oaicite:0]{index=0}
