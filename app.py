@@ -34,7 +34,6 @@ metrics = pd.read_csv("model/metrics.csv", index_col=0)
 
 # ---------- METRICS ----------
 st.subheader("📊 Model Performance Comparison")
-
 col1, col2 = st.columns([3,1])
 with col1:
     st.dataframe(metrics, use_container_width=True)
@@ -43,12 +42,10 @@ with col2:
 
 # ---------- CSV FORMAT ----------
 st.subheader("📄 Expected CSV Format")
-
 required_columns = [
     "age","sex","dataset","cp","trestbps","chol","fbs","restecg",
     "thalch","exang","oldpeak","slope","ca","thal"
 ]
-
 st.code(", ".join(required_columns))
 
 # ---------- SAMPLE CSV ----------
@@ -67,7 +64,6 @@ st.download_button(
 
 # ---------- FULL DATASET DOWNLOAD ----------
 st.subheader("📥 Download Full Dataset for Testing")
-
 DATA_URL = "https://raw.githubusercontent.com/SidSri1996/ml-heart-disease-streamlit/main/data/heart_disease_uci.csv"
 response = requests.get(DATA_URL)
 
@@ -116,46 +112,47 @@ if uploaded_file is not None:
 
     # ---------- PREDICT ----------
     predictions = model.predict(data)
-
-    st.subheader("🔍 Prediction Results")
     pred_df = pd.DataFrame({"Prediction": predictions})
     pred_df["Prediction"] = pred_df["Prediction"].map({0:"No Disease",1:"Heart Disease"})
-    st.dataframe(pred_df, use_container_width=True)
 
-    st.subheader("📊 Prediction Distribution")
+    # ================= DASHBOARD =================
+    st.divider()
+    st.subheader("📊 Prediction Dashboard")
 
-    counts = pred_df["Prediction"].value_counts()
-    
-    fig, ax = plt.subplots(figsize=(6,4))
-    bars = ax.bar(counts.index, counts.values)
-    
-    # Add labels above bars
-    for bar in bars:
-        height = bar.get_height()
-        ax.text(bar.get_x() + bar.get_width()/2, height + 2,
-                f'{int(height)}', ha='center', va='bottom', fontsize=11)
-    
-    ax.set_ylabel("Number of Patients")
-    ax.set_xlabel("Prediction Result")
-    ax.set_title("Heart Disease Prediction Distribution")
-    
-    st.pyplot(fig)
+    colA, colB = st.columns([1,1])
 
+    # LEFT SIDE
+    with colA:
+        st.markdown("## 📋 Prediction Results")
+        st.dataframe(pred_df, height=380, use_container_width=True)
 
-    # ---------- CONFUSION MATRIX ----------
-    if y_true is not None:
-        st.subheader("🧠 Confusion Matrix")
+        counts = pred_df["Prediction"].value_counts()
 
-        cm = confusion_matrix(y_true, predictions)
-        fig, ax = plt.subplots()
-        sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", ax=ax)
-        ax.set_xlabel("Predicted")
-        ax.set_ylabel("Actual")
-        st.pyplot(fig)
-    else:
-        st.info("Upload dataset including 'num' column to view confusion matrix")
+        fig1, ax1 = plt.subplots(figsize=(4,3))
+        bars = ax1.bar(counts.index, counts.values)
+
+        for bar in bars:
+            height = bar.get_height()
+            ax1.text(bar.get_x()+bar.get_width()/2, height+1,
+                     f'{int(height)}', ha='center', fontsize=10)
+
+        ax1.set_ylabel("Patients")
+        ax1.set_title("Prediction Distribution")
+        st.pyplot(fig1)
+
+    # RIGHT SIDE
+    with colB:
+        st.markdown("## 🧠 Model Evaluation")
+        if y_true is not None:
+            cm = confusion_matrix(y_true, predictions)
+            fig2, ax2 = plt.subplots(figsize=(4,3))
+            sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", cbar=False, ax=ax2)
+            ax2.set_xlabel("Predicted")
+            ax2.set_ylabel("Actual")
+            st.pyplot(fig2)
+        else:
+            st.info("Upload dataset including 'num' column to view confusion matrix")
 
 # ---------- FOOTER ----------
 st.divider()
 st.caption("Developed for BITS Pilani WILP - Machine Learning Assignment 2")
-
