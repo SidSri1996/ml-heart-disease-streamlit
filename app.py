@@ -15,11 +15,11 @@ columns = joblib.load("model/columns.pkl")
 scaler = joblib.load("model/scaler.pkl")
 metrics = pd.read_csv("model/metrics.csv", index_col=0)
 
-# Show metrics
+# ---------------- METRICS ----------------
 st.subheader("📊 Model Performance Comparison")
 st.dataframe(metrics)
 
-# Show expected CSV format
+# ---------------- CSV FORMAT ----------------
 st.subheader("📄 Expected CSV Format")
 
 required_columns = [
@@ -38,11 +38,11 @@ st.download_button(
     mime="text/csv"
 )
 
-# Model selection
+# ---------------- MODEL SELECT ----------------
 model_name = st.selectbox("Select Model", list(models.keys()))
 model = models[model_name]
 
-# Upload file
+# ---------------- FILE UPLOAD ----------------
 st.subheader("📂 Upload Dataset")
 uploaded_file = st.file_uploader("Upload CSV file", type=["csv"])
 
@@ -53,13 +53,13 @@ if uploaded_file is not None:
     st.write("Preview of uploaded data:")
     st.dataframe(original_data.head())
 
-    # Extract target if exists
+    # Extract target if exists (convert to binary!)
     y_true = None
     if 'num' in original_data.columns:
-        y_true = original_data['num']
+        y_true = (original_data['num'] > 0).astype(int)
         original_data = original_data.drop(columns=['num'])
 
-    # Preprocessing (same as training)
+    # ---------- PREPROCESS ----------
     data = pd.get_dummies(original_data, drop_first=True)
 
     for col in columns:
@@ -72,7 +72,7 @@ if uploaded_file is not None:
     if model_name in ["Logistic Regression", "KNN"]:
         data = scaler.transform(data)
 
-    # Predictions
+    # ---------- PREDICTIONS ----------
     predictions = model.predict(data)
 
     st.subheader("Predictions")
@@ -81,7 +81,7 @@ if uploaded_file is not None:
     st.subheader("Prediction Distribution")
     st.bar_chart(pd.Series(predictions).value_counts())
 
-    # Confusion matrix if actual labels available
+    # ---------- CONFUSION MATRIX ----------
     if y_true is not None:
         cm = confusion_matrix(y_true, predictions)
 
